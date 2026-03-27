@@ -1,0 +1,624 @@
+
+html_content = '''<!DOCTYPE html>
+<html dir="rtl" lang="ckb">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI KURDISH | نـۆڵـڤ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@1,900&family=Noto+Naskh+Arabic:wght@700&family=Vazirmatn:wght@300;500;800&display=swap" rel="stylesheet">
+    <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+        --primary: #07040f;
+        --gold: #c9a96e;
+        --gold-light: #e8d5a3;
+        --accent-cyan: #00f2ff;
+        --accent-red: #ff4d4d;
+        --glass: rgba(10, 5, 20, 0.85); 
+        --purple-glow: rgba(160, 80, 255, 0.3);
+    }
+
+    body {
+        background: var(--primary);
+        color: #fff;
+        font-family: 'Vazirmatn', sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
+        user-select: none;
+        scroll-behavior: smooth;
+    }
+
+    /* ── BACKGROUND & RAYS ── */
+    #bgCanvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+    .rays {
+        position: fixed; top:-50%; left:50%; width:300%; height:300%; z-index: 1; pointer-events: none;
+        background: conic-gradient(from 0deg at 50% 50%, 
+            transparent 0deg, var(--purple-glow) 0.2deg, transparent 0.5deg,
+            transparent 2deg, var(--purple-glow) 2.2deg, transparent 2.5deg);
+        animation: raysR 50s linear infinite;
+        opacity: 0.6;
+    }
+    @keyframes raysR { from { transform: translate(-50%, -20%) rotate(0deg); } to { transform: translate(-50%, -20%) rotate(360deg); } }
+    
+    .stars { position:fixed; inset:0; z-index:1; pointer-events:none; }
+    .star { position:absolute; border-radius:50%; background:white; animation: twk var(--d) var(--dl) ease-in-out infinite; }
+    @keyframes twk { 0%,100%{ opacity:var(--o); transform: scale(1); } 50%{ opacity:0.1; transform: scale(0.6); } }
+
+    .mbti-main {
+        font-family: 'Bodoni Moda', serif; font-size: clamp(40px, 10vw, 80px);
+        font-weight: 900; font-style: italic; line-height: 0.9;
+        background: linear-gradient(90deg, #fff, #c9a96e, #a78bfa, #c9a96e, #fff);
+        background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        animation: textFlow 5s linear infinite;
+    }
+    @keyframes textFlow { to { background-position: 200% center; } }
+
+    .main-wrapper { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 40px 15px; text-align: center; }
+
+    /* ── SOCIAL BUTTONS ── */
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    .social-btn {
+        background: transparent;
+        color: var(--gold);
+        border: 1px solid var(--gold);
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.4s;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+    .social-btn:hover {
+        background: var(--gold);
+        color: #000;
+        box-shadow: 0 0 15px var(--gold);
+    }
+
+    /* ── TELEGRAM GROUP LINK ── */
+    .telegram-banner {
+        background: rgba(0, 136, 204, 0.15);
+        border: 1px solid rgba(0, 136, 204, 0.4);
+        padding: 15px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        font-weight: 800;
+    }
+    .telegram-banner a {
+        color: #00f2ff;
+        text-decoration: none;
+    }
+
+    /* ── CARDS ── */
+    .q-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 40px 20px; margin-bottom: 30px; transition: 0.4s; }
+    .circles-row { display: flex; align-items: center; justify-content: center; gap: clamp(5px, 2vw, 12px); direction: rtl; }
+    .circle { border-radius: 50%; border: 2px solid #555; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.05); }
+
+    /* ── RESULTS ── */
+    .stats-container { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 25px; border: 1px solid rgba(201,169,110,0.2); }
+    .stat-bar-bg { background: rgba(255,255,255,0.05); height: 14px; border-radius: 10px; overflow: hidden; margin-top: 6px; }
+    .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #fff); transition: 1.5s ease-out; }
+    .stat-labels { display: flex; justify-content: space-between; font-weight: 800; font-size: 0.9rem; color: var(--gold-light); }
+
+    .desc-box { background: var(--glass); padding: 30px; border-radius: 25px; line-height: 2; text-align: justify; border-right: 5px solid var(--gold); margin: 20px 0; font-size: 1.1rem; }
+    .strength-weakness { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 30px 0; }
+    .sw-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; text-align: right; }
+    .sw-card h4 { color: var(--gold); margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .sw-card p { line-height: 1.8; font-size: 1.05rem; color: #ddd; }
+
+    .partners-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+    .partner-card { background: rgba(201,169,110,0.1); border: 1px solid var(--gold); padding: 18px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-weight: 800; }
+    .partner-card:hover { background: var(--gold); color: #000; }
+
+    #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
+    .modal-content { background: #0f0a1a; border: 2px solid var(--gold); padding: 35px; border-radius: 30px; max-width: 500px; width: 100%; text-align: center; position: relative; }
+    .close-modal { position: absolute; top: 15px; left: 20px; font-size: 28px; cursor: pointer; color: var(--gold); }
+
+    .btn-action { background: transparent; color: #fff; border: 1px solid var(--gold); padding: 15px 40px; border-radius: 50px; font-weight: 800; cursor: pointer; transition: 0.4s; }
+    .btn-action:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+    
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .at-badge {
+        background: linear-gradient(135deg, var(--gold), #a78bfa);
+        color: #000;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 900;
+        font-size: 1.2rem;
+    }
+    </style>
+</head>
+<body>
+    <div id="pLine" style="position:fixed; top:0; height:4px; background:var(--gold); z-index:2000; transition:0.5s; width:0%;"></div>
+    <canvas id="bgCanvas"></canvas>
+    <div class="rays"></div>
+    <div class="stars" id="starLayer"></div>
+
+    <div class="main-wrapper">
+        <!-- TELEGRAM GROUP BANNER -->
+        <div class="telegram-banner">
+            <span style="color:#fff;">گرووپ چـاتـی کەسایەتیەکان لە تەلەگرام بە هاتنتان دڵخۆش دەبین:</span><br>
+            <a href="https://t.me/mbti11" target="_blank">@mbti11</a>
+        </div>
+
+        <!-- SOCIAL LINKS TOP -->
+        <div class="social-links" id="social-top">
+            <a href="https://t.me/mbti11" target="_blank" class="social-btn">تەلەگرام</a>
+            <a href="https://t.me/deansle" target="_blank" class="social-btn">پەیوەندی</a>
+            <a href="https://www.tiktok.com/@jinx.s64" target="_blank" class="social-btn">تیکتۆک</a>
+        </div>
+
+        <div id="screen-start">
+            <div style="margin-bottom:40px;">
+                <div style="font-family:'Noto Naskh Arabic'; font-size:24px; color:var(--gold); font-weight:700;">نـۆڵـڤ</div>
+                <h1 class="mbti-main">MBTI KURDISH</h1>
+            </div>
+            <button class="btn-action" onclick="startQuiz()">دەستپێکردنی تاقیکردنەوە</button>
+        </div>
+
+        <div id="screen-quiz" style="display:none;">
+            <h2 id="section-title" style="color:var(--gold); margin-bottom:25px; font-weight:800;"></h2>
+            <div id="q-area"></div>
+            <div style="margin-top:30px; display:flex; justify-content:center; gap:15px;">
+                <button class="btn-action" style="border-color:#444;" onclick="prev()">گەڕانەوە</button>
+                <button class="btn-action" id="nextBtn" onclick="next()">بەردەوام بە</button>
+            </div>
+        </div>
+
+        <div id="screen-info" style="display:none;">
+            <div style="background:var(--glass); border:1px solid var(--gold); padding:40px 25px; border-radius:30px; max-width:400px; margin:0 auto;">
+                <h3 style="color:var(--gold); margin-bottom:20px;">زانیاری کۆتایی</h3>
+                <select id="age-input" style="width:100%; padding:12px; border-radius:15px; background:#111; color:#fff; border:1px solid #444; margin-bottom:20px; font-family:'Vazirmatn'; outline:none;">
+                    <option value="" disabled selected>تەمەنت هەڵبژێرە</option>
+                </select>
+                <div style="display:flex; gap:10px; margin-bottom:25px;">
+                    <button id="btn-m" class="btn-action" style="flex:1" onclick="setG('نێر')">نێر</button>
+                    <button id="btn-f" class="btn-action" style="flex:1" onclick="setG('مێ')">مێ</button>
+                </div>
+                <button class="btn-action" style="width:100%;" onclick="calculateResult()">پیشاندانی ئەنجام</button>
+            </div>
+        </div>
+
+        <div id="screen-result" style="display:none;">
+            <div class="result-header">
+                <h1 id="res-code" style="font-size:5.5rem; color:var(--gold); font-family:'Bodoni Moda'; margin:0;"></h1>
+                <span id="res-at" class="at-badge"></span>
+            </div>
+            <h2 id="res-name" style="font-size:2.2rem; margin-bottom:5px; color:#fff;"></h2>
+            <div id="user-info-display" style="color:var(--gold); font-weight:800; margin-bottom:25px; opacity:0.8;"></div>
+            
+            <div id="stats-area" class="stats-container"></div>
+            <div class="desc-box" id="res-desc"></div>
+            
+            <div class="strength-weakness">
+                <div class="sw-card">
+                    <h4>خاڵە بەهێزەکانت (Strengths)</h4>
+                    <p id="res-strengths"></p>
+                </div>
+                <div class="sw-card">
+                    <h4>خاڵە لاوازەکانت (Weaknesses)</h4>
+                    <p id="res-weaknesses"></p>
+                </div>
+            </div>
+
+            <h3 style="color:var(--gold); margin:40px 0 20px; font-size:1.5rem;">هاوبەشە گونجاوەکان</h3>
+            <div id="partners-area" class="partners-grid"></div>
+
+            <!-- SOCIAL LINKS BOTTOM -->
+            <div class="social-links" id="social-bottom" style="margin-top:40px;">
+                <a href="https://t.me/mbti11" target="_blank" class="social-btn">گرووپی تەلەگرام</a>
+                <a href="https://t.me/deansle" target="_blank" class="social-btn">پەیوەندی</a>
+                <a href="https://www.tiktok.com/@jinx.s64" target="_blank" class="social-btn">تیکتۆک</a>
+            </div>
+
+            <button class="btn-action" style="width:100%; margin-top:40px;" onclick="location.reload()">دووبارە تاقیکردنەوە</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title" style="color:var(--gold); margin-bottom:15px;"></h3>
+            <p id="modal-desc" style="line-height:2; text-align:justify; color:#ccc;"></p>
+        </div>
+    </div>
+
+<script>
+    const questions = [
+        {q: "لە ناو کۆمەڵدا هەست بە وزەی زۆر دەکەم دەکەم", v: "E"},
+        {q: "حەز دەکەم کاتەکانم لەگەڵ هاوڕێکانم بەسەر ببەرم نەک بە تەنیا", v: "E"},
+        {q: "ناسینی کەسانی نوێ بۆ من کارێکی ئاسان و خۆشە", v: "E"},
+        {q: "لە ناو کۆڕ و مەجلیسدا من زیاتر قسە دەکەم و دەستپێشخەرم", v: "E"},
+        {q: "حەز دەکەم لە ناوەڕاستی سەرنجی خەڵکدا بم", v: "E"},
+        {q: "بیرۆکەکانم بە دەنگی بەرز لەگەڵ کەسانی تر باس دەکەم", v: "E"},
+        {q: "پاش بەسەربردنی کاتێکی زۆر لەگەڵ خەڵک هەست بە شادی دەکەم", v: "E"},
+        {q: "تەلەفۆن کردن بۆ من ئاسانترە لە نامە نووسین", v: "E"},
+        {q: "حەز دەکەم لە جێگەی قەرەباڵغ و پڕ لە جووڵە بم", v: "E"},
+        {q: "زۆربەی کات پێش ئەوەی بیر بکەمەوە قسە دەکەم", v: "E"},
+        {q: "کاتێک تەنیا دەبم هەست بە بێزاری یان بێتاقەتی دەکەم", v: "E"},
+        {q: "بازنەی هاوڕێیەتییم فراوانە", v: "E"},
+        {q: "بۆ من ئاسانە بابەتێکی نوێ لەگەڵ کەسێکی نامۆ دەست پێ بکەم", v: "E"},
+        {q: "لە شوێنی کار یان خوێندن حەز دەکەم بە گرووپ کار بکەم", v: "E"},
+        {q: "حەزم بەو چالاکییانەیە کە بەژداری زۆر کەسی تێدایە", v: "E"},
+        {q: "کاتێک کێشەیەکم هەیە حەز دەکەم لەگەڵ کەسێک باسی بکەم", v: "E"},
+        {q: "لە بۆنە و ئاهەنگەکاندا تا درەنگ دەمێنمەوە و چێژ وەردەگرم", v: "E"},
+        {q: "حەز دەکەم دەوروبەرم پڕ بێت لە دەنگ و جووڵە", v: "E"},
+        {q: "قسە لەگەڵ کەسانی نامۆ دەکەم کاتێک لە شوێنێکی گشتیدا چاوەڕێ دەکەم", v: "E"},
+        {q: "حەز دەکەم خەڵک دەربارەی ژیان و کارەکانم بزانن", v: "E"},
+        {q: "چێژ و خۆشیەکانم لە جیهانی دەرەوە دێت نەک لەناو مێشکمدا", v: "E"},
+        {q: "من زیاتر سەرنجم لەسەر ئەو شتانەیە کە ئێستا ڕوودەدەن", v: "S"},
+        {q: "حەزم بە زانیارییەکی ڕوونە کە بتوانم بیبینم و دەستی لێ بدەم", v: "S"},
+        {q: "حەز دەکەم فێری شتێک ببم کە یەکسەر سوودی هەبێت", v: "S"},
+        {q: "من کەسێکی جـدیـم و حەزم بە واقیعە", v: "S"},
+        {q: "پێم باشە کارەکان بەو شێوەیە بکەم کە پێشتر تاقی کراوەتەوە", v: "S"},
+        {q: "حەزم بە وردەکارییە و بە وردی سەیری شتەکان دەکەم", v: "S"},
+        {q: "زیاتر متمانە بە ئەزموونی خۆم دەکەم نەک بە هەست", v: "S"},
+        {q: "حەزم بەو ڕێنماییانەیە کە خاڵ بە خاڵ بۆم نووسراوە", v: "S"},
+        {q: "من زیاتر سەرنجم لەسەر ڕاستییەکانە نەک ئەگەرەکان", v: "S"},
+        {q: "حەزم بە کارکردنە بە دەست و کەرەستەی فیزیاییە", v: "S"},
+        {q: "زیاتر حەزم بە زانینی (چۆن و کەی) شتەکانە نەک (بۆچی)", v: "S"},
+        {q: "من زیاتر وەک کەسێکی عاقڵ و واقیعی دەبینرێم", v: "S"},
+        {q: "حەزم بە فێربوونی شتی ڕاستەقینەیە نەک تۆری ئاڵۆز", v: "S"},
+        {q: "زۆرجار ون دەبم لە ناو خەیاڵ و بیرکردنەوەکانم", v: "N"},
+        {q: "حەزم بە بیرۆکەی نوێ و جیاوازە تەنانەت ئەگەر سەیر بن", v: "N"},
+        {q: "هەمیشە وێنە گەورەکە دەبینم نەک تەنها بەشە بچووکەکان", v: "N"},
+        {q: "زیاتر بەدوای مانا شاراوەکاندا دەگەڕێم لە ناو شتەکاندا", v: "N"},
+        {q: "حەزم بە خوێندنەوەی بابەتە فەلسەفییەکانە", v: "N"},
+        {q: "زۆرجار بە هەستی ناوەوەم بڕیار دەدەم", v: "N"},
+        {q: "حەز دەکەم ڕێگەی نوێ تاقی بکەمەوە بۆ کارکردن", v: "N"},
+        {q: "من زیاتر خەیاڵاویم و هەمیشە بیر لە داهاتوو دەکەمەوە", v: "N"},
+        {q: "حەزم بە دۆزینەوەی پەیوەندی نێوان شتە جیاوازەکانە", v: "N"},
+        {q: "من زیاتر گرنگی بەوە دەدەم کە لە داهاتوو چی ڕوودەدات", v: "N"},
+        {q: "حەزم بە پێشبینیکردن و گەڕانە بەدوای شتی نوێدا", v: "N"},
+        {q: "من زۆر زوو لە ڕۆتین و شتی دووبارە بێزار دەبم", v: "N"},
+        {q: "زۆرجار وشەی (لەوانەیە) و (ئەگەر) زۆر بەکاردێنم", v: "N"},
+        {q: "لە کاتی بڕیاردان عەقڵم دەخەمە پێش هەستم", v: "T"},
+        {q: "پێم باشترە ڕاستگۆ بم، گرینگ نیە خەڵک هەستی چۆن دەبێت", v: "T"},
+        {q: "لۆژیک و بەڵگە بۆ من لە هەموو شتێک گرنگترن", v: "T"},
+        {q: "کاتێک بڕیار دەدەم تەنها سەیری ڕاستییەکان دەکەم", v: "T"},
+        {q: "لە کاتی کێشەدا حەز دەکەم بزانم کێ خەتابارە", v: "T"},
+        {q: "حەز دەکەم یاسا بۆ هەمووان وەک یەک بێت", v: "T"},
+        {q: "ڕەخنەگرتن بە کارێکی پێویست دەبینم بۆ سەرکەوتن", v: "T"},
+        {q: "زیاتر سەیری ئەنجامی کارەکە دەکەم نەک ماندووبوونی کەسەکە", v: "T"},
+        {q: "پێم باشە مرۆڤێکی بەهێز بم نەک مرۆڤێکی ناسک", v: "T"},
+        {q: "لە مشتومڕدا حەز دەکەم ڕاستییەکە بسەلمێنم", v: "T"},
+        {q: "هەڵەی کارەکان زوو دەبینم و بێدەنگ نابم", v: "T"},
+        {q: "دادپەروەری بۆ من لە میهرەبانی گرنگترە", v: "T"},
+        {q: "هەستی کەسانی تر لای من زۆر گرنگە", v: "F"},
+        {q: "پێم باشە هەمووان لێم ڕازی بن و دڵیان نەیەشێت", v: "F"},
+        {q: "لە بڕیارداندا ڕەچاوی هەستی دەوروبەرم دەکەم", v: "F"},
+        {q: "حەز دەکەم لە ناو خەڵکدا ئاشتی و تەبایی هەبێت", v: "F"},
+        {q: "من زیاتر بە دڵم بڕیار دەدەم نەک بە مێشکم", v: "F"},
+        {q: "حەز دەکەم هاوکاری خەڵک بکەم و گوێ لە خەمەکانیان بگرم", v: "F"},
+        {q: "میهرەبانی و بەزەیی لای من لە هەموو شتێک گرنگترە", v: "F"},
+        {q: "زۆر زوو بە قسەی خەڵک کاریگەر دەبم", v: "F"},
+        {q: "حەز ناکەم دڵی کەس بێشێنم تەنانەت ئەگەر هەڵەش بن", v: "F"},
+        {q: "کاتێک بڕیار دەدەم بیر لە لایەنە مرۆییەکان دەکەمەوە", v: "F"},
+        {q: "پێم باشە مرۆڤێکی بەسۆز بم نەک مرۆڤێکی ڕەق", v: "F"},
+        {q: "هەمیشە هەوڵ دەدەم هاوڕێکانم لە خۆم ڕازی بکەم", v: "F"},
+        {q: "حەز دەکەم هەموو کارەکانم پێشوەختە پلان بۆ داڕێژراو بێت", v: "J"},
+        {q: "پێم باشە بەرنامەی ڕۆژانەم هەبێت و پێوەی پابەند بم", v: "J"},
+        {q: "کاتێک بڕیارێکم دا ئیتر نایگۆڕم و جێبەجێی دەکەم", v: "J"},
+        {q: "ژوورەکەم و شوێنی کارەکەم هەمیشە ڕێکخراو و خاوێنە", v: "J"},
+        {q: "حەز دەکەم کارەکانم زوو تەواو بکەم و نەیانهێڵمەوە بۆ کاتی کۆتایی", v: "J"},
+        {q: "پێش ئەوەی بچمە سەفەر هەموو وردەکارییەکان ڕێک دەخەم", v: "J"},
+        {q: "لیستێکی تایبەتم هەیە بۆ ئەو کارانەی دەبێت ئەنجامیان بدەم", v: "J"},
+        {q: "حەزم بە یاسا و ڕێساکانە و حەز دەکەم پەیڕەویان بکەم", v: "J"},
+        {q: "کات بۆ خوودی خۆم زۆر گرنگە", v: "J"},
+        {q: "حەز دەکەم کارەکانم بە ڕێکوپێکی و خاڵ بە خاڵ بڕۆن بەڕێوە", v: "J"},
+        {q: "کاتێک کارێکی کتوپڕ دێتە پێش مێشکم تێک دەچێت", v: "J"},
+        {q: "حەزم بە ژیانێکی جێگیرە و حەز بە سوپرایز ناکەم", v: "J"},
+        {q: "من حەز دەکەم بژاردەکانم کراوە بن و بڕیاری کۆتایی نەدەم", v: "P"},
+        {q: "حەزم بە گۆڕانکاری کتوپڕە و پلانی توندومۆڵم ناوێت", v: "P"},
+        {q: "لەژێر پەستانی کاتدا باشتر کار دەکەم و کارەکان دەهێڵمەوە بۆ کۆتایی", v: "P"},
+        {q: "حەز دەکەم بەپێی بارودۆخەکە ڕەفتار بکەم نەک بەپێی پلان", v: "P"},
+        {q: "بۆ من ئاسانە کە لە نیوەی ڕێگەدا پلانەکەم بگۆڕم", v: "P"},
+        {q: "حەزم بە تاقیکردنەوەی شتی نوێیە و ڕقم لە ڕۆتینە", v: "P"},
+        {q: "حەز دەکەم ئازاد بم و هەر کاتێک چیم پێ خۆش بوو ئەوە بکەم", v: "P"},
+        {q: "من کەسێکی سەرکێشم و حەزم بە شتی کتوپڕ و نەخشە بۆ نەکێشراوە", v: "P"},
+        {q: "پێم باشە لە کاتی کارکردندا یاری و کات بەسەربردنیش هەبێت", v: "P"}
+    ];
+
+    const resultsData = {
+        "INFJ": {
+            n: "پێشەوا (Advocate)", 
+            d: "تۆ کەسێکی زۆر دەگمەنیت، خاوەن دیدگایەکی قووڵ و تێگەیشتنێکی بەهێز بۆ مرۆڤەکان.",
+            s: "تۆ زۆر میهرەبانی و دەتوانیت لە هەستی خەڵک تێبگەیت بەبێ ئەوەی قسە بکەن. هەمیشە ئامانجت هەیە و بە ڕێکوپێکی هەوڵ دەدەیت جیهان باشتر بکەیت. زۆر دڵسۆزیت بۆ ئەو شتانەی باوەڕت پێیانە.",
+            w: "زۆر جار بیر لە خەمی خەڵک دەکەیتەوە و خۆت ماندوو دەکەیت. هەندێک جار زۆر هەستیاریت بەرامبەر ڕەخنە. چونکە هەوڵ دەدەیت هەموو شتێک بێ کەموکوڕی بێت، زوو تووشی دڵەڕاوکێ دەبیت.",
+            p: ["ENTP", "ENFP", "INTJ", "ENFJ"]
+        },
+        "INTJ": {
+            n: "تەلارساز (Architect)",
+            d: "تۆ ستراتیژیستێکی زیرەک و وردبینیت، هەمیشە چەند هەنگاوێک لەپێش خەڵکیت.",
+            s: "مێشکێکی زۆر بەهێزت هەیە بۆ چارەسەرکردنی کێشەکان. زۆر سەربەخۆیت و پێویستت بەوە نییە کەس پێت بڵێت چی بکەیت. کاتێک ئامانجێکت هەبێت، بە لۆژیک و پلان دەگەیتە ئەنجام.",
+            w: "هەندێک جار خەڵک وات دەبینن کە کەسێکی سارد و بێ هەستیت، چونکە زیاتر گرنگی بە مێشک دەدەیت نەک دڵ. زۆر ڕەخنە دەگریت و ڕەنگە لەگەڵ ئەو کەسانەی وەک تۆ بیر ناکەنەوە هەڵنەکەیت.",
+            p: ["ENTP", "ENFP", "INFJ", "ENTJ"]
+        },
+        "INTP": {
+            n: "لۆژیکزان (Logician)",
+            d: "تۆ بیرکەرەوەیەکی داهێنەریت، حەز دەکەت بزانیت هەموو شتێک چۆن کار دەکات.",
+            s: "زۆر زیرەکیت لە لێکدانەوەی شتەکان و دۆزینەوەی هەڵەکان. کەسێکی کراوەیت بۆ بیرۆکەی نوێ و هیچ کات بڕیاری پێشوەختە نادەیت. زۆر باش دەتوانیت بە تەنیا کار بکەیت و داهێنان بکەیت.",
+            w: "زۆر جار لە ناو مێشکتدا دەمێنیتەوە و بیر لە شتەکان دەکەیتەوە بەڵام جێبەجێیان ناکەیت. هەستەکانت فەرامۆش دەکەیت و ئەمەش دەبێتە هۆی ئەوەی لە پەیوەندییە کۆمەڵایەتییەکاندا کەمێک لاواز بیت.",
+            p: ["ENTJ", "ENFJ", "ENTP", "INFJ"]
+        },
+        "ENTJ": {
+            n: "فەرماندە (Commander)",
+            d: "تۆ سەرکردەیەکی بەهێزیت، ناترسیت لە بەرپرسیارییەتی و گۆڕینی بیرۆکەکان بۆ کردار.",
+            s: "متمانەت بەخۆت زۆر بەهێزە و دەتوانیت خەڵک ئاراستە بکەیت. زۆر بە لۆژیک بڕیار دەدەیت و کات بەفیڕۆ نادەیت. لە ڕێکخستنی کارە گەورەکاندا تۆ باشترینی.",
+            w: "هەندێک جار زۆر ڕەقیت بەرامبەر خەڵک و گوێ بە هەستەکانیان نادەیت. پەلەتە بۆ گەیشتن بە ئەنجام و ئەمەش وات لێدەکات فشارێکی زۆر بخەیتە سەر دەوروبەرت.",
+            p: ["INTP", "INFP", "INTJ", "ENTP"]
+        },
+        "INFP": {
+            n: "نێوەندگیر (Mediator)",
+            d: "تۆ خاوەن ڕۆحێکی پاکیت، هەمیشە هەوڵ دەدەیت بەهایەکی جوان بدەیت بە ژیان.",
+            s: "زۆر بەسۆز و میهرەبانیت، هەوڵ دەدەیت هەمیشە یارمەتی بێهێزەکان بدەیت. خەیاڵێکی زۆر فراوانت هەیە و لە نووسین یان هونەردا زۆر لێهاتووی. زۆر ڕێز لە ئازادی دەگریت.",
+            w: "زۆر جار زۆر خەیاڵاویت و لە واقیع دوور دەکەویتەوە. زۆر زوو دڵت دەشکێت و ناتوانیت بەرگەی ڕەخنەی توند بگریت. زۆربەی کات بڕیاردان بۆت زۆر قورسە.",
+            p: ["ENFJ", "ENTJ", "ENFP", "INFJ"]
+        },
+        "ENFJ": {
+            n: "پاڵەوان (Protagonist)",
+            d: "تۆ کەسێکی کاریزماتیت، خەڵک خۆشیان دەوێیت چونکە هەمیشە هاندەریانیت.",
+            s: "توانایەکی باشت هەیە لە قسەکردن و تێگەیاندنی خەڵک. زۆر بەوەفا و میهرەبانیت بۆ هاوڕێکانت. دەتوانیت گرووپێک کۆبکەیتەوە و ئامانجی گەورەیان بۆ دیاری بکەیت.",
+            w: "هەندێک جار زۆر زیاد لە پێویست خەمی خەڵک دەخۆیت و خۆت بیر دەچێتەوە. زۆر هەوڵ دەدەیت هەمووان لە خۆت ڕازی بکەیت و ئەمەش ماندووت دەکات.",
+            p: ["INFP", "ISFP", "ENFP", "INFJ"]
+        },
+        "ENFP": {
+            n: "هاندەر (Campaigner)",
+            d: "تۆ پڕیت لە وزە، هەمیشە شتی نوێ دەدۆزیتەوە و خەڵکیش بە وزەکەت دڵخۆش دەکەیت.",
+            s: "زۆر گەشبینیت و لە هەر ناخۆشییەکدا لایەنە باشەکە دەبینیت. زۆر کۆمەڵایەتیت و زوو تێکەڵی خەڵک دەبیت. مێشکێکی داهێنەرت هەیە و حەزت بە سەرکێشییە.",
+            w: "زوو لە شتەکان بێزار دەبیت و ناتوانیت کارەکان تەواو بکەیت. زۆر جار سەرنجت بڵاو دەبێتەوە و لە یەک کاتدا بیر لە ١٠٠ شت دەکەیتەوە بەبێ ئەوەی یەکێکیان جێبەجێ بکەیت.",
+            p: ["INFJ", "INTJ", "INFP", "ENFJ"]
+        },
+        "ENTP": {
+            n: "دیبەیتکەر (Debater)",
+            d: "تۆ کەسێکی زۆر زیرەک و زمان پاراویت، حەز دەکەیت هەموو شتێک تاقی بکەیتەوە.",
+            s: "زۆر خێرا بیر دەکەیتەوە و وەڵامت هەیە بۆ هەموو شتێک. ناترسیت لەوەی ڕای جیاوازت هەبێت. زۆر باشیت لە دۆزینەوەی چارەسەری نوێ بۆ کێشە کۆنەکان.",
+            w: "هەندێک جار تەنها بۆ گاڵتە یان مشتومڕ قسە دەکەیت و ئەمەش دڵی خەڵک دەئێشێنێت. زۆر ناڕێکیت و حەزت بە پابەند بوون نییە بە یاسا و کاتەکانەوە.",
+            p: ["INFJ", "INTJ", "ENTJ", "INTP"]
+        },
+        "ISTJ": {
+            n: "پشکنەر (Logistician)",
+            d: "تۆ کەسێکی زۆر جێگیر و متمانەپێکراویت، هەمیشە بەپێی یاسا و ڕاستییەکان دەڕۆیت.",
+            s: "زۆر ڕێکوپێکیت و هەر کارێک بگریتە دەست بە باشترین شێوە تەواوی دەکەیت. زۆر ڕاستگۆیت و خەڵک دەزانن کە دەتوانن پشتت پێ ببەستن. مێشکێکی وردت هەیە بۆ زانیارییەکان.",
+            w: "زۆر سەرسەختیت و گۆڕانکاریت پێ قبوڵ ناکرێت. هەندێک جار زۆر وشکیت لە مامەڵەکردن و تەنها گرنگی بە ئەرک دەدەیت نەک هەستی مرۆڤەکان.",
+            p: ["ESFP", "ESTP", "ISFJ", "ESTJ"]
+        },
+        "ISFJ": {
+            n: "پارێزەر (Defender)",
+            d: "تۆ کەسێکی زۆر میهرەبان و دڵسۆزیت، هەمیشە پارێزگاری لەوانە دەکەیت کە خۆشت دەوێن.",
+            s: "زۆر وردبینیت و هەموو شتێکی بچووک دەربارەی هاوڕێکانت دەزانیت. هەمیشە ئامادەیت قوربانی بدەیت بۆ خێزانەکەت. کارەکانت بە بێدەنگی و زۆر بە ڕێکی ئەنجام دەدەیت.",
+            w: "زۆر شەرمنیت و حەز ناکەیت کەس باسی چاکەکانت بکات. هەموو شتێک لە ناو خۆتدا دەهێڵیتەوە و ئەمەش دەبێتە پەستانێکی دەروونی زۆر لەسەرت. زۆر جار خەڵک سوود لە باشیت دەبینن.",
+            p: ["ESFP", "ESTP", "ISTJ", "ISFP"]
+        },
+        "ESTJ": {
+            n: "بەڕێوەبەر (Executive)",
+            d: "تۆ کەسێکی زۆر ڕێکخراو و بەڕێوەبەرێکی باشیت، حەزت بەوەیە هەموو شتێک لە شوێنی خۆی بێت.",
+            s: "زۆر بەهێزیت لە سەرپەرشتی کردنی پڕۆژەکان. یاسا و ڕێساکان لای تۆ پیرۆزن. زۆر ڕاستگۆ و ڕاشکاویت و قسە لە دڵتدا ناهێڵیتەوە.",
+            w: "زۆر جار زۆر کۆنتڕۆڵکەریت و دەتەوێت هەموو شتێک بە کەیفی تۆ بێت. ناتوانیت لەگەڵ کەسانی ناڕێک هەڵبکەیت و زۆر زوو توڕە دەبیت.",
+            p: ["ISTP", "ISFP", "ISTJ", "ESFJ"]
+        },
+        "ESFJ": {
+            n: "کونسوڵ (Consul)",
+            d: "تۆ کەسێکی زۆر کۆمەڵایەتی و بەسۆزیت، دڵخۆشی تۆ لە دڵخۆشی خەڵکدایە.",
+            s: "باشترین هاوڕێیت و هەمیشە ئاگاداری هەمووانیت. زۆر ڕێز لە دابونەریت دەگریت. دەتوانیت بە ئاسانی هاوسەنگی لە نێوان هاوڕێکانتدا دروست بکەیت.",
+            w: "زۆر هەستیاریت بەرامبەر ڕای خەڵک و دەتەوێت هەمیشە پێت بڵێن دەستخۆش. هەندێک جار زۆر دەست وەردەدەیتە ژیانی خەڵکەوە تەنها بۆ ئەوەی یارمەتییان بدەیت بەڵام ئەوان بێزار دەبن.",
+            p: ["ISFP", "ISTP", "ESTJ", "ISFJ"]
+        },
+        "ISTP": {
+            n: "هونەرمەند (Virtuoso)",
+            d: "تۆ کەسێکی کردەیی و سەربەخۆیت، حەز دەکەیت بە دەستەکانت شت دروست بکەیت.",
+            s: "لە کاتی کێشە گەورەکاندا زۆر ئارامیت و دەزانیت چی بکەیت. زۆر لێهاتووی لە بەکارهێنانی کەرەستە و ئامێرەکان. کەسێکی سادەیت و ژیان وەک خۆی دەبینیت.",
+            w: "زۆر بێدەنگیت و خەڵک لێت تێناگەن. حەزت بەوە نییە کەس پابەندت بکات بە پلان یان بەڵێنی درێژخایەنەوە. هەندێک جار زۆر سەرکێشی مەترسیدار دەکەیت.",
+            p: ["ESTJ", "ESFJ", "ESTP", "ISFP"]
+        },
+        "ISFP": {
+            n: "سەرکێشیکەر (Adventurer)",
+            d: "تۆ هونەرمەندێکی هەستیاریت، حەز دەکەیت چێژ لە جوانییەکانی ژیان وەربگریت.",
+            s: "تام و چێژێکی زۆر باشت هەیە لە هەموو شتێکدا. زۆر نەرم و نیانیت لەگەڵ خەڵک و ڕێز لە هەموو کەس دەگریت. هەمیشە لە کاتی ئێستادا دەژیت و چێژ وەردەگریت.",
+            w: "زۆر جار پلان بۆ داهاتوو دانانێیت و ئەمەش تووشی کێشەت دەکات. زۆر سەربەخۆیت و ئەگەر کەسێک کەمێک سنورت ببەزێنێت زۆر توڕە دەبیت.",
+            p: ["ENFJ", "ESFJ", "ESTJ", "ISTP"]
+        },
+        "ESTP": {
+            n: "خاوەنکار (Entrepreneur)",
+            d: "تۆ کەسێکی چالاک و ئازاییت، هەمیشە لە ناو جەرگەی ڕووداوەکاندایت.",
+            s: "زۆر زوو هەست بە گۆڕانکارییەکان دەکەیت و بڕیاری خێرا دەدەیت. زۆر کاریزماتیت و خەڵک حەز دەکەن لە دەوروبەرت بن. لە قسەکردن و ڕازیکردنی خەڵکدا یەکەمی.",
+            w: "پەلەتە و زۆر جار بیر لە ئەنجامی کارەکانت ناکەیتەوە. زۆر زوو لە تیۆری و قسەی درێژ بێزار دەبیت. هەندێک جار زۆر بێباکیت بەرامبەر مەترسییەکان.",
+            p: ["ISFJ", "ISTJ", "ESTP", "ESFP"]
+        },
+        "ESFP": {
+            n: "نمایشکار (Entertainer)",
+            d: "تۆ پڕیت لە شادی و وزە، هەر شوێنێک بچیت دەیکەیت بە ئاهەنگ.",
+            s: "زۆر بەسۆزیت و دەتوانیت بە ئاسانی خەڵک دڵخۆش بکەیت. زۆر جوانپۆشیت و تام و چێژت لە هەموو شتێکدا دیارە. مرۆڤێکی سادە و دڵپاکی.",
+            w: "زۆر جار تەنها بیر لە خۆشی ئێستا دەکەیتەوە و ئەرکەکانت لەبیر دەچێت. زۆر هەستیاریت و ئەگەر کەسێک کەمێک سارد بێت لەگەڵت زۆر بێتاقەت دەبیت.",
+            p: ["ISFJ", "ISTJ", "ESFP", "ESTP"]
+        }
+    };
+
+    const partnerReasons = {
+        "ENTP": "زیرەکی و توانای گفتوگۆی ENTP دەبێتە تەواوکەرێکی نایاب بۆ دیدگای قووڵی تۆ.",
+        "ENFP": "وزە و گەشبینی ENFP هاندەرت دەبێت بۆ ئەوەی لە قاوغی خۆت بێیتە دەرەوە.",
+        "INTJ": "هەردووکتان بە قووڵی و لۆژیک بیر دەکەنەوە. تێگەیشتنتان بۆ یەکتری زۆر خێرایە.",
+        "INFJ": "هەبوونی کەسێکی وەک خۆت واتە تێگەیشتنێکی ڕۆحی قووڵ بەبێ قسەکردن.",
+        "ENTJ": "توانای سەرکردایەتی ENTJ و لۆژیکی تۆ دەبنە هێزێکی گەورە بۆ گەیشتن بە ئامانجەکان.",
+        "INTP": "INTP یارمەتیت دەدات لایەنە وردەکانی هەر بابەتێک ببینی بەبێ هەست و سۆز.",
+        "INFP": "ئەم پەیوەندییە پڕ دەبێت لە میهرەبانی و تێگەیشتنی قووڵ بۆ بەهاکانی یەکتر.",
+        "ENFJ": "کاریزمای ENFJ یارمەتیت دەدات لایەنە کۆمەڵایەتییەکانت باشتر بکەیت.",
+        "ISTP": "هەردووکتان گرنگی بە کردەیی بوون دەدەن و کێشەکان بە خێرایی چارەسەر دەکەن.",
+        "ESTJ": "سەرکردایەتی و ڕێکی ESTJ لەگەڵ وردبینی تۆدا یەک دەگرێتەوە بۆ ژیانێکی جێگیر.",
+        "ISFJ": "پارێزگاری و گرنگیدانی ISFJ وات لێ دەکات هەمیشە هەست بە ئارامی و دڵنیایی بکەیت.",
+        "ESTP": "ئازایەتی ESTP وزەت پێ دەبەخشێت و فێرت دەکات چێژ لە ساتەکان وەربگریت.",
+        "ESFJ": "کۆمەڵایەتی بوونی ئەو وا دەکات هەمیشە هەست بکەیت بەشێکیت لە کۆمەڵگەیەکی بەهێز.",
+        "ISFP": "ئەو بە شێوەیەکی هونەری ژیان دەبینێت و ئەمەش بۆ تۆ زۆر سەرنجڕاکێش دەبێت.",
+        "ISTJ": "متمانە و بەهێزی بنەمای ئەم پەیوەندییەیە، هەردووکتان کەسانی زۆر جێگیرن.",
+        "ESFP": "ESFP دەتوانێت ڕۆتینی ژیانت بشکێنێت و نیشانت بدات چۆن بە سادەیی دڵخۆش بیت."     
+             };
+
+    // --- Core Logic ---
+    let curPage = 0; let answers = {}; const itemsPerPage = 23;
+    let userGender = ""; let userAge = "";
+
+    const ageSelect = document.getElementById('age-input');
+    for(let i=12; i<=60; i++) {
+        let opt = document.createElement('option'); opt.value = i; opt.innerText = i + " ساڵ";
+        ageSelect.appendChild(opt);
+    }
+
+    function startQuiz() {
+        document.getElementById('screen-start').style.display = 'none';
+        document.getElementById('screen-quiz').style.display = 'block';
+        renderQuestions();
+    }
+
+    function renderQuestions() {
+        const area = document.getElementById('q-area'); area.innerHTML = "";
+        const start = curPage * itemsPerPage;
+        const end = Math.min(start + itemsPerPage, questions.length);
+        const titles = ["وزە و چالاکی", "تێڕوانین بۆ جیهان", "بڕیاردان و لۆژیک", "شێوازی ژیان"];
+        document.getElementById('section-title').innerText = titles[curPage];
+
+        for (let i = start; i < end; i++) {
+            area.innerHTML += `
+                <div class="q-card" id="card-${i}">
+                    <div style="font-size:1.2rem; margin-bottom:25px; font-weight:800; line-height:1.6; color:var(--gold-light);">${questions[i].q}</div>
+                    <div class="circles-row">
+                        <div class="circle" onclick="saveAns(${i},3)"  id="d-${i}-p3" style="width:42px; height:42px;"></div>
+                        <div class="circle" onclick="saveAns(${i},2)"  id="d-${i}-p2" style="width:34px; height:34px;"></div>
+                        <div class="circle" onclick="saveAns(${i},1)"  id="d-${i}-p1" style="width:26px; height:26px;"></div>
+                        <div class="circle" onclick="saveAns(${i},0)"  id="d-${i}-0" style="width:18px; height:18px;"></div>
+                        <div class="circle" onclick="saveAns(${i},-1)" id="d-${i}-n1" style="width:26px; height:26px;"></div>
+                        <div class="circle" onclick="saveAns(${i},-2)" id="d-${i}-n2" style="width:34px; height:34px;"></div>
+                        <div class="circle" onclick="saveAns(${i},-3)" id="d-${i}-n3" style="width:42px; height:42px;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; max-width:320px; margin:15px auto 0; font-size:0.9rem; font-weight:800; opacity:0.6;">
+                        <span style="color:var(--accent-cyan)">بەڵێ</span>
+                        <span style="color:var(--accent-red)">نەخێر</span>
+                    </div>
+                </div>`;
+            if (answers[i] !== undefined) updateUI(i, answers[i]);
+        }
+        window.scrollTo({top:0, behavior:'smooth'});
+        document.getElementById('pLine').style.width = ((curPage + 1) / 4 * 100) + "%";
+    }
+
+    function saveAns(id, val) { 
+        answers[id] = val; updateUI(id, val); 
+        setTimeout(() => {
+            const nextCard = document.getElementById(`card-${id + 1}`);
+            if (nextCard) window.scrollTo({ top: nextCard.offsetTop - 120, behavior: 'smooth' });
+        }, 200);
+    }
+
+    function updateUI(id, val) {
+        const card = document.getElementById(`card-${id}`); if(!card) return;
+        const dots = card.querySelectorAll('.circle');
+        dots.forEach(d => { d.style.background="rgba(255,255,255,0.05)"; d.style.boxShadow="none"; });
+        let tid = val===0 ? `d-${id}-0` : (val<0 ? `d-${id}-n${Math.abs(val)}` : `d-${id}-p${val}`);
+        let target = document.getElementById(tid);
+        let color = val === 0 ? "#777" : (val < 0 ? "var(--accent-red)" : "var(--accent-cyan)");
+        target.style.background = color; target.style.boxShadow = `0 0 15px ${color}`;
+    }
+
+    function next() {
+        const start = curPage * itemsPerPage;
+        const end = Math.min(start + itemsPerPage, questions.length);
+        for(let i=start; i<end; i++) { if(answers[i] === undefined) { alert("تکایە هەموو وەڵامەکان پڕ بکەرەوە"); return; } }
+        if (curPage < 3) { curPage++; renderQuestions(); }
+        else { document.getElementById('screen-quiz').style.display='none'; document.getElementById('screen-info').style.display='block'; window.scrollTo(0,0); }
+    }
+    function prev() { if (curPage > 0) { curPage--; renderQuestions(); } }
+
+    function setG(g) {
+        userGender = g;
+        document.getElementById('btn-m').style.background = g==='نێر' ? 'var(--gold)' : 'transparent';
+        document.getElementById('btn-f').style.background = g==='مێ' ? 'var(--gold)' : 'transparent';
+        document.getElementById('btn-m').style.color = g==='نێر' ? '#000' : '#fff';
+        document.getElementById('btn-f').style.color = g==='مێ' ? '#000' : '#fff';
+    }
+
+    function calculateResult() {
+        userAge = document.getElementById('age-input').value;
+        if(!userGender || !userAge) { alert("تەمەن و ڕەگەز دیاری بکە"); return; }
+
+        let s = {E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0};
+        questions.forEach((q, i) => {
+            let v = answers[i] || 0, type = q.v;
+            let opposite = {E:'I', S:'N', T:'F', J:'P', I:'E', N:'S', F:'T', P:'J'}[type];
+            if(v > 0) s[type] += v; else if(v < 0) s[opposite] += Math.abs(v);
+        });
+        
+        const getP = (a, b) => Math.round((s[a] / (s[a] + s[b] || 1)) * 100);
+        const e_i = getP('E','I'), s_n = getP('S','N'), t_f = getP('T','F'), j_p = getP('J','P');
+        const baseType = (e_i>=50?'E':'I')+(s_n>=50?'S':'N')+(t_f>=50?'T':'F')+(j_p>=50?'J':'P');
+        
+        // Calculate A/T based on J-P axis (closer to 50% = T, further = A)
+        const atSuffix = Math.abs(j_p - 50) > 15 ? '-A' : '-T';
+
+        document.getElementById('screen-info').style.display = 'none';
+        document.getElementById('screen-result').style.display = 'block';
+        document.getElementById('res-code').innerText = baseType;
+        document.getElementById('res-at').innerText = atSuffix;
+        const data = resultsData[baseType];
+        document.getElementById('res-name').innerText = data.n;
+        document.getElementById('res-desc').innerText = data.d;
+        document.getElementById('res-strengths').innerText = data.s;
+        document.getElementById('res-weaknesses').innerText = data.w;
+        document.getElementById('user-info-display').innerText = `${userGender} | ${userAge} ساڵ`;
+
+        const statsArea = document.getElementById('stats-area');
+        const makeBar = (l, r, p) => `
+            <div style="margin-bottom:15px;">
+                <div class="stat-labels"><span>${l}</span><span>${p}%</span><span>${r}</span></div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div>
+            </div>`;
+        statsArea.innerHTML = makeBar('E (دەرەکی)', 'I (ناوەکی)', e_i) + makeBar('S (واقیعی)', 'N (خەیاڵی)', s_n) + 
+                             makeBar('T (لۆژیکی)', 'F (هەستی)', t_f) + makeBar('J (ڕێکخراو)', 'P (سەربەست)', j_p);
+
+        const partnersArea = document.getElementById('partners-area');
+        partnersArea.innerHTML = "";
+        data.p.forEach(pt => {
+            const div = document.createElement('div');
+            div.className = "partner-card";
+            div.innerText = pt;
+            div.onclick = () => openModal(pt);
+            partnersArea.appendChild(div);
+        });
+        window.scrollTo(0,0);
+    }
+
+    function openModal(type) {
+        document.getElementById('modal-title').innerText = "گونجانی تۆ لەگەڵ " + type;
+        document.getElementById('modal-desc').innerText = partnerReasons[type] || "ئەم دوو کەسایەتییە لە زۆر لایەنەوە تەواکەری یەکترن.";
+        document.getElementById('modal').style.display = "flex";
+    }
+    function closeModal() { document.getElementById('modal').style.display = "none"; }
+
+    // --- Visuals ---
+    const layer = document.getElementById('starLayer');
+    for(let i=0; i<150; i++) {
+        const s = document.createElement('div'); s.className = 'star';
+        const z = Math.random() * 2.5;
+        s.style.cssText = `width:${z}px; height:${z}px; left:${Math.random()*100}%; top:${Math.random()*100}%; --d:${2+Math.random()*5}s; --dl:${Math.random()*6}s; --o:${0.3+Math.random()*0.7};`;
+        layer.appendChild(s);
+    }
+    const cvs = document.getElementById('bgCanvas'); const ctx = cvs.getContext('2d');
+    let W, H; function resize(){ W=cvs.width=window.innerWidth; H=cvs.height=window.innerHeight; }
+    resize(); window.onresize = resize;
+    function draw() { ctx.fillStyle = '#07040f'; ctx.fillRect(0,0,W,H); requestAnimationFrame(draw); } 
+    draw();
+</script>
+</body>
+</html>'''
